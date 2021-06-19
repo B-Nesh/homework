@@ -57,6 +57,7 @@ class Circle {
     this.velocityY += this.gravity * dt
 
     this.y += this.velocityY * dt
+
   }
 
   render (ctx) {
@@ -77,6 +78,8 @@ const CANVAS_HEIGHT = 512
 
 const GRAVITY = 100
 
+let counter = 0
+
 const shapes = []
 
 const dpr = devicePixelRatio
@@ -89,12 +92,15 @@ canvas.height = CANVAS_HEIGHT * dpr
 canvas.style.width = `${CANVAS_WIDTH}px`
 canvas.style.height = `${CANVAS_HEIGHT}px`
 
+///////////////////////////////////////////////////////////
+
 function getCursorPosition(canvas, event) {
   const rect = canvas.getBoundingClientRect()
-  const posX = event.clientX - rect.left
+  let posX = event.clientX - rect.left
   const posY = event.clientY - rect.top
   const randRadius = 10 + Math.random() * 15
   let shape
+
   if(Math.round(Math.random())<.5){
     shape = new Rectangle({
           x: posX,
@@ -106,6 +112,9 @@ function getCursorPosition(canvas, event) {
           gravity: GRAVITY
         })
   }else{
+    if(posX < randRadius){
+      posX = randRadius
+    }
     shape = new Circle({
       x: posX,
       y: posY,
@@ -122,7 +131,10 @@ function getCursorPosition(canvas, event) {
 
 canvas.addEventListener('mousedown', function(e) {
   getCursorPosition(canvas, e)
+  counter += 1
 })
+///////////////////////////////////////////////////////////
+
 
 requestAnimationFrame(drawFrame)
 
@@ -142,11 +154,19 @@ function drawFrame (ts) {
     item.update(dt)
 
     if (item.y + item.height > canvas.height || item.y + item.radius > canvas.height) {
+      if(item.velocityY < GRAVITY){
+        item.velocityY = 250
+      }
+
       item.velocityY *= -1 
     }
 
     item.render(ctx)
   }
+  // counter
+  ctx.fillStyle = 'black'
+  ctx.font ='2em monospace'
+  ctx.fillText(counter, 450, 50)
 
   rAf = requestAnimationFrame(drawFrame)
 }

@@ -23,7 +23,6 @@ class Rectangle {
 
   update (dt) {
     this.velocityY += this.gravity * dt
-
     this.y += this.velocityY * dt
   }
 
@@ -55,7 +54,6 @@ class Circle {
 
   update (dt) {
     this.velocityY += this.gravity * dt
-
     this.y += this.velocityY * dt
 
   }
@@ -76,7 +74,7 @@ let rAf
 const CANVAS_WIDTH = 512
 const CANVAS_HEIGHT = 512
 
-const GRAVITY = 100
+let GRAVITY = 100
 
 let counter = 0
 
@@ -85,6 +83,7 @@ const shapes = []
 const dpr = devicePixelRatio
 const canvas = document.getElementById('c')
 const ctx = canvas.getContext('2d') 
+const gravityValue = document.getElementById('gravity')
 
 canvas.width = CANVAS_WIDTH * dpr
 canvas.height = CANVAS_HEIGHT * dpr
@@ -133,6 +132,11 @@ canvas.addEventListener('mousedown', function(e) {
   getCursorPosition(canvas, e)
   counter += 1
 })
+
+gravityValue.addEventListener('change', function(e) {
+  GRAVITY = gravityValue.value
+})
+
 ///////////////////////////////////////////////////////////
 
 
@@ -151,6 +155,7 @@ function drawFrame (ts) {
   let i = shapes.length
   while (i--) {
     const item = shapes[i]
+    item.gravity = GRAVITY
     item.update(dt)
 
     if (item.y + item.height > canvas.height || item.y + item.radius > canvas.height) {

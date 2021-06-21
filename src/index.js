@@ -68,42 +68,61 @@ class Circle {
 }
 
 let oldTime = 0
-let rAf
 
 // Initialize step
 const CANVAS_WIDTH = 512
 const CANVAS_HEIGHT = 512
 
+const BOUNCE_FACTOR = 0.8
+
 let GRAVITY = 100
 
-let counter = 0
+let rAf
+
 
 const shapes = []
 
-const dpr = devicePixelRatio
 const canvas = document.getElementById('c')
 const ctx = canvas.getContext('2d') 
 const gravityValue = document.getElementById('gravity')
 
-canvas.width = CANVAS_WIDTH * dpr
-canvas.height = CANVAS_HEIGHT * dpr
+canvas.width = CANVAS_WIDTH * devicePixelRatio
+  canvas.height = CANVAS_HEIGHT * devicePixelRatio
 
-canvas.style.width = `${CANVAS_WIDTH}px`
-canvas.style.height = `${CANVAS_HEIGHT}px`
+  canvas.style.width = `${CANVAS_WIDTH}px`
+  canvas.style.height = `${CANVAS_HEIGHT}px`
+
+let rect = canvas.getBoundingClientRect()
+console.log(rect)
 
 ///////////////////////////////////////////////////////////
 
-function getCursorPosition(canvas, event) {
-  const rect = canvas.getBoundingClientRect()
-  let posX = event.clientX - rect.left
-  const posY = event.clientY - rect.top
+window.onresize = () => {
+  console.log('resize')
+
+  canvas.width = CANVAS_WIDTH * devicePixelRatio
+  canvas.height = CANVAS_HEIGHT * devicePixelRatio
+
+  canvas.style.width = `${CANVAS_WIDTH}px`
+  canvas.style.height = `${CANVAS_HEIGHT}px`
+
+  rect = canvas.getBoundingClientRect()
+  console.log(rect)
+}
+
+function initNewObject(canvas, event) {
+  let posX = event.layerX
+  const posY = event.layerY
   const randRadius = 10 + Math.random() * 15
   let shape
-
-  if(Math.round(Math.random())<.5){
+  console.log({devicePixelRatio})
+  if(Math.random() < .5){
+    if (posX > canvas.width - randRadius) {
+      posX = canvas.width - randRadius
+    }
     shape = new Rectangle({
-          x: posX,
-          y: posY,
+          x: posX * devicePixelRatio,
+          y: posY * devicePixelRatio,
           width: randRadius,
           height: randRadius,
           color: getRandRGBColor(),
@@ -113,10 +132,12 @@ function getCursorPosition(canvas, event) {
   }else{
     if(posX < randRadius){
       posX = randRadius
+    } else if (posX > canvas.width - randRadius) {
+      posX = canvas.width - randRadius
     }
     shape = new Circle({
-      x: posX,
-      y: posY,
+      x: posX * devicePixelRatio,
+          y: posY * devicePixelRatio,
       radius: randRadius,
       color: getRandRGBColor(),
       velocityY: 0,
@@ -129,12 +150,12 @@ function getCursorPosition(canvas, event) {
 }
 
 canvas.addEventListener('mousedown', function(e) {
-  getCursorPosition(canvas, e)
-  counter += 1
+  initNewObject(canvas, e)
 })
 
 gravityValue.addEventListener('change', function(e) {
-  GRAVITY = gravityValue.value
+  const updatedGravity = Number(gravityValue.value)
+  GRAVITY = updatedGravity
 })
 
 ///////////////////////////////////////////////////////////
@@ -158,20 +179,28 @@ function drawFrame (ts) {
     item.gravity = GRAVITY
     item.update(dt)
 
-    if (item.y + item.height > canvas.height || item.y + item.radius > canvas.height) {
-      if(item.velocityY < GRAVITY){
-        item.velocityY = 250
-      }
 
-      item.velocityY *= -1 
+    // ---[]-------------
+
+    if (item instanceof Rectangle && item.y + item.height >= canvas.height) {
+      item.y = canvas.height - item.height
+      item.velocityY *= -1
+      item.velocityY *= BOUNCE_FACTOR
     }
+
+    if (item instanceof Circle && item.y + item.radius > canvas.height) {
+      item.y = canvas.height - item.radius
+      item.velocityY *= -1
+      item.velocityY *= BOUNCE_FACTOR
+    }
+    //  || 
 
     item.render(ctx)
   }
   // counter
   ctx.fillStyle = 'black'
   ctx.font ='2em monospace'
-  ctx.fillText(counter, 450, 50)
+  ctx.fillText(shapes.length, canvas.width - 50, 50)
 
   rAf = requestAnimationFrame(drawFrame)
 }
